@@ -1,4 +1,4 @@
--- Create table
+-- Create Students table
 CREATE TABLE Students (
     student_id INT PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -41,6 +41,24 @@ CREATE TABLE Teachings (
     CONSTRAINT fk_course
         FOREIGN KEY (course_id)
         REFERENCES Courses(course_id)
+        ON DELETE CASCADE
+);
+
+-- Create Enrollments table
+CREATE TABLE Enrollments (
+    enrollment_id INT PRIMARY KEY,
+    student_id INT NOT NULL,
+    teaching_id INT NOT NULL,
+    grade VARCHAR(10),  -- allows '90', 'DNE', or NULL
+
+    CONSTRAINT fk_student
+        FOREIGN KEY (student_id)
+        REFERENCES Students(student_id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_teaching
+        FOREIGN KEY (teaching_id)
+        REFERENCES Teachings(teaching_id)
         ON DELETE CASCADE
 );
 
@@ -91,25 +109,9 @@ INSERT INTO Teachings (teaching_id, professor_id, course_id, semester, year) VAL
 (11, 1, 101, 'Winter', 2024),
 (12, 2, 104, 'Winter', 2025);
 
--- Create Enrollments table
-CREATE TABLE Enrollments (
-    enrollment_id INT PRIMARY KEY,
-    student_id INT NOT NULL,
-    teaching_id INT NOT NULL,
-    grade VARCHAR(10),  -- allows '90', 'DNE', or NULL
 
-    CONSTRAINT fk_student
-        FOREIGN KEY (student_id)
-        REFERENCES Students(student_id)
-        ON DELETE CASCADE,
 
-    CONSTRAINT fk_teaching
-        FOREIGN KEY (teaching_id)
-        REFERENCES Teachings(teaching_id)
-        ON DELETE CASCADE
-);
-
--- Insert data
+-- Insert Enrollments data
 INSERT INTO Enrollments (enrollment_id, student_id, teaching_id, grade) VALUES
 (1, 1, 1, '90'),
 (2, 1, 2, '75'),
