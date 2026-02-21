@@ -49,8 +49,8 @@ describe('Worker startup and shutdown', () => {
 
   it('connects to MongoDB and Redis on start', async () => {
     await jest.isolateModulesAsync(async () => {
-      await import('../workers/worker');
-      await new Promise((resolve) => setImmediate(resolve));
+      require('../workers/worker');
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockMongooseConnect).toHaveBeenCalledWith(
         expect.stringContaining('mongodb://'),
@@ -67,8 +67,8 @@ describe('Worker startup and shutdown', () => {
     mockMongooseConnect.mockRejectedValueOnce(new Error('DB connection failed'));
 
     await jest.isolateModulesAsync(async () => {
-      await import('../workers/worker');
-      await new Promise((resolve) => setImmediate(resolve));
+      require('../workers/worker');
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to start worker:',
