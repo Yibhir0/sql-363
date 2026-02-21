@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Back-End/Dockerfile # adjust if your Dockerfile path differs
+    container_name: backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./secrets/.env
+    networks:
+      - app-network
+    depends_on:
+      - redis
+      - mongodb
+      - python_utils
+    command: ["api"] # <-- requires the role-based entrypoint we discussed
+
+  worker:
+    build:
+      context: .
+      dockerfile: Back-End/Dockerfile # adjust if your Dockerfile path differs
+    container_name: worker
+    env_file:
+      - ./secrets/.env
+    networks:
+      - app-network
+    depends_on:
+      - redis
+      - mongodb
+      - python_utils
+    command: ["worker"] # <-- requires role-based entrypoint
+    # no ports exposed
+  python_utils:
+    build:
+      context: ./Back-End/python_utils
+      dockerfile: Dockerfile
+    container_name: python_utils_service
+    ports:
+      - "15001:15001"
+    env_file:
+      - ./secrets/.env
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    env_file:
+      - ./secrets/.env
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - app-network
+
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  mongodb-data:
