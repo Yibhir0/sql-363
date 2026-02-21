@@ -26,6 +26,7 @@ jest.mock('node:fs/promises', () => ({
 
 jest.mock('../services/timeline/timelineService', () => ({
   buildTimeline: jest.fn(),
+  buildTimelineFromDB: jest.fn(),
 }));
 
 jest.mock('../lib/cache', () => ({
@@ -93,6 +94,28 @@ describe('courseProcessorWorker', () => {
     });
     expect(cacheJobResult).toHaveBeenCalledWith('job-body-456', {
       payload: { status: 'done', data: { timeline: ['x', 'y'] } },
+    });
+    expect(unlink).not.toHaveBeenCalled();
+  });
+
+  test('processes a timelineData job: builds from DB, caches result', async () => {
+    const { buildTimelineFromDB } = require('../services/timeline/timelineService');
+    buildTimelineFromDB.mockResolvedValueOnce({ timeline: ['db', 'data'] });
+    cacheJobResult.mockResolvedValueOnce(undefined);
+
+    const job = {
+      data: {
+        jobId: 'job-timeline-789',
+        kind: 'timelineData',
+        timelineId: 'timeline-123',
+      },
+    };
+
+    await workerProcessor(job);
+
+    expect(buildTimelineFromDB).toHaveBeenCalledWith('timeline-123');
+    expect(cacheJobResult).toHaveBeenCalledWith('job-timeline-789', {
+      payload: { status: 'done', data: { timeline: ['db', 'data'] } },
     });
     expect(unlink).not.toHaveBeenCalled();
   });
