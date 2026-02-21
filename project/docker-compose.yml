@@ -34,10 +34,23 @@ services:
       timeout: 5s
       retries: 5
 
+  python-utils:
+    build:
+      context: ./Back-End/python_utils
+      dockerfile: Dockerfile
+    container_name: python-utils
+    ports:
+      - "15001:15001"
+    env_file:
+      - ./secrets/.env
+    networks:
+      - app-network
+    restart: unless-stopped
+
   backend:
     build:
-      context: .
-      dockerfile: Back-End/Dockerfile
+      context: ./Back-End/src
+      dockerfile: ../Dockerfile
     container_name: backend
     ports:
       - "8000:8000"
@@ -49,6 +62,7 @@ services:
       - REDIS_PORT=6379
       - MONGO_HOST=mongodb
       - MONGO_PORT=27017
+      - PYTHON_UTILS_URL=http://python-utils:15001
     networks:
       - app-network
     depends_on:
@@ -56,13 +70,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["api"]
+      python-utils:
+        condition: service_started
     restart: unless-stopped
 
   worker:
     build:
-      context: .
-      dockerfile: Back-End/Dockerfile
+      context: ./Back-End/src
+      dockerfile: ../Dockerfile
     container_name: worker
     env_file:
       - ./secrets/.env
@@ -72,6 +87,8 @@ services:
       - REDIS_PORT=6379
       - MONGO_HOST=mongodb
       - MONGO_PORT=27017
+      - PYTHON_UTILS_URL=http://python-utils:15001
+    command: ["npm", "run", "worker"]
     networks:
       - app-network
     depends_on:
@@ -79,7 +96,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: ["worker"]
+      python-utils:
+        condition: service_started
     restart: unless-stopped
 
   frontend:

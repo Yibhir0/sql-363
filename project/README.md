@@ -13,16 +13,20 @@ docker-compose up --build
 ```
 
 3. Access the application:
-- API: http://localhost:8000
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- Python Utils: http://localhost:15001
 - MongoDB: localhost:27017
 - Redis: localhost:6379
 
 ## Services
 
-- **backend**: Node.js API server with embedded Python utils
+- **frontend**: TypeScript frontend (port 3000)
+- **backend**: Node.js API server (port 8000)
 - **worker**: Background worker (same image as backend)
-- **mongodb**: MongoDB database
-- **redis**: Redis cache
+- **python-utils**: Python utilities service (port 15001)
+- **mongodb**: MongoDB database (port 27017)
+- **redis**: Redis cache (port 6379)
 
 ## Commands
 
@@ -53,6 +57,11 @@ Clean everything (including volumes):
 docker-compose down -v
 ```
 
-## Development
+## Service Communication
 
-The worker and backend share the same Docker image but run different commands via the entrypoint script.
+Inside containers, services communicate using service names:
+- Backend → Python Utils: `http://python-utils:15001`
+- Backend → MongoDB: `mongodb://mongodb:27017`
+- Backend → Redis: `redis://redis:6379`
+- Frontend → Backend: `http://backend:8000`
+
